@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YC Events — UX Mockup</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        serif: ['Playfair Display', 'Georgia', 'serif'],
+      },
+      colors: {
+        yc: {
+          orange: '#F26522',
+          peach: '#FDF0E9',
+          navy: '#1B1340',
+          purple: '#2D1B69',
+        }
+      }
+    }
+  }
+}
+</script>
+<style>
+body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+.font-serif { font-family: 'Playfair Display', Georgia, serif; }
+.hero-gradient { background: linear-gradient(135deg, #1B1340 0%, #2D1B69 40%, #3D2580 60%, #1B1340 100%); }
+.circle { position: absolute; border-radius: 50%; pointer-events: none; }
+.toast { animation: slideUp 0.3s ease-out, fadeOut 0.3s ease-in 4.7s forwards; }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+.big-checkbox { width: 18px; height: 18px; accent-color: #F26522; cursor: pointer; }
+.modal-backdrop { animation: fadeIn 0.2s ease-out; }
+.modal-card { animation: scaleIn 0.2s ease-out; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+</style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+
+<!-- ==================== SCREEN SWITCHER ==================== -->
+<div id="screenSwitcher" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] bg-white border border-gray-200 rounded-2xl shadow-lg px-2 py-2 flex gap-1">
+  <button data-screen="event-detail" class="screen-tab px-4 py-2 rounded-xl text-sm font-medium transition-colors bg-gray-900 text-white">Event Page</button>
+  <button data-screen="admin-applicants" class="screen-tab px-4 py-2 rounded-xl text-sm font-medium transition-colors text-gray-600 hover:bg-gray-100">Applicant Review</button>
+  <button data-screen="admin-events" class="screen-tab px-4 py-2 rounded-xl text-sm font-medium transition-colors text-gray-600 hover:bg-gray-100">Event List</button>
+  <button data-screen="admin-event-form" class="screen-tab px-4 py-2 rounded-xl text-sm font-medium transition-colors text-gray-600 hover:bg-gray-100">Create Event</button>
+</div>
+
+<!-- ==================== TOAST CONTAINER ==================== -->
+<div id="toastContainer" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 items-center"></div>
+
+<!-- ==================== LOGIN MODAL ==================== -->
+<div id="loginModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+  <div class="modal-backdrop absolute inset-0 bg-black/50" id="loginBackdrop"></div>
+  <div class="modal-card relative bg-white rounded-2xl shadow-xl max-w-sm w-full p-8">
+    <button id="loginModalClose" class="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded transition-colors">
+      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="text-center mb-6">
+      <div class="w-12 h-12 bg-yc-orange rounded-xl flex items-center justify-center mx-auto mb-4">
+        <span class="text-white font-bold text-2xl">Y</span>
+      </div>
+      <h2 class="text-xl font-semibold">Sign in to YC Events</h2>
+      <p class="text-gray-500 text-sm mt-1">Use your Google account to continue</p>
+    </div>
+
+    <!-- Step 1: Google button -->
+    <div id="loginStep1">
+      <button id="googleSignInBtn" class="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg py-3 px-4 text-sm font-medium hover:bg-gray-50 transition-colors">
+        <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continue with Google
+      </button>
+    </div>
+
+    <!-- Step 2: Simulated account picker -->
+    <div id="loginStep2" class="hidden">
+      <p class="text-sm text-gray-500 mb-3">Choose an account</p>
+      <div class="space-y-2">
+        <button class="google-account-btn w-full flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left" data-email="ryan.choi@ycombinator.com" data-name="Ryan Choi">
+          <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">RC</div>
+          <div class="min-w-0">
+            <div class="text-sm font-medium truncate">Ryan Choi</div>
+            <div class="text-xs text-gray-500 truncate">ryan.choi@ycombinator.com</div>
+          </div>
+          <span class="ml-auto text-xs text-gray-400 flex-shrink-0">Admin</span>
+        </button>
+        <button class="google-account-btn w-full flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left" data-email="zgreen@gmail.com" data-name="Zoe Green">
+          <div class="w-9 h-9 rounded-full bg-green-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">ZG</div>
+          <div class="min-w-0">
+            <div class="text-sm font-medium truncate">Zoe Green</div>
+            <div class="text-xs text-gray-500 truncate">zgreen@gmail.com</div>
+          </div>
+          <span class="ml-auto text-xs text-green-600 flex-shrink-0">Existing user</span>
+        </button>
+        <button class="google-account-btn w-full flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left" data-email="sarah.new@gmail.com" data-name="Sarah Mitchell">
+          <div class="w-9 h-9 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">SM</div>
+          <div class="min-w-0">
+            <div class="text-sm font-medium truncate">Sarah Mitchell</div>
+            <div class="text-xs text-gray-500 truncate">sarah.new@gmail.com</div>
+          </div>
+          <span class="ml-auto text-xs text-orange-600 flex-shrink-0">New user</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 3: Loading spinner -->
+    <div id="loginStep3" class="hidden text-center py-4">
+      <svg class="animate-spin w-8 h-8 mx-auto text-yc-orange mb-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+      <p class="text-sm text-gray-500">Signing in...</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- SCREEN 1: EVENT DETAIL PAGE (PUBLIC)                      -->
+<!-- ========================================================= -->
+<div id="screen-event-detail" class="screen">
+
+  <!-- Navbar -->
+  <nav class="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-4">
+    <div class="w-10 h-10 bg-yc-orange rounded-lg flex items-center justify-center">
+      <span class="text-white font-bold text-xl">Y</span>
+    </div>
+    <div id="navAuthArea" class="flex items-center gap-3 text-white text-sm">
+      <button id="navSignInBtn" class="text-white/90 hover:text-white transition-colors font-medium">Sign in</button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <div class="hero-gradient relative overflow-hidden" style="min-height: 420px;">
+    <!-- Decorative circles -->
+    <div class="circle" style="width:320px;height:320px;top:-60px;left:-80px;border:1px solid rgba(255,255,255,0.08);"></div>
+    <div class="circle" style="width:200px;height:200px;top:40px;right:10%;background:rgba(255,255,255,0.04);"></div>
+    <div class="circle" style="width:400px;height:400px;bottom:-120px;right:-60px;border:1px solid rgba(255,255,255,0.06);"></div>
+    <div class="circle" style="width:140px;height:140px;top:60px;left:20%;background:rgba(255,255,255,0.05);"></div>
+    <div class="circle" style="width:80px;height:80px;bottom:40px;left:30%;border:1px solid rgba(255,255,255,0.1);"></div>
+    <div class="circle" style="width:260px;height:260px;top:20px;right:30%;border:1px solid rgba(255,255,255,0.05);"></div>
+    <!-- Small accent dots -->
+    <div class="circle" style="width:8px;height:8px;top:100px;left:45%;background:#F26522;opacity:0.6;"></div>
+    <div class="circle" style="width:6px;height:6px;top:180px;right:25%;background:#F26522;opacity:0.5;"></div>
+    <div class="circle" style="width:10px;height:10px;bottom:80px;left:15%;background:#F26522;opacity:0.4;"></div>
+    <div class="circle" style="width:5px;height:5px;top:60px;right:40%;background:#e8845a;opacity:0.7;"></div>
+    <div class="circle" style="width:7px;height:7px;bottom:120px;right:15%;background:#e8845a;opacity:0.5;"></div>
+
+    <!-- Hero Content -->
+    <div class="relative z-10 flex flex-col items-center justify-center text-center px-6" style="min-height: 420px; padding-top: 80px;">
+      <h1 class="font-serif text-white text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight max-w-4xl">
+        YC Co-Founder Matching Event in Dogpatch
+      </h1>
+      <div class="flex items-center gap-6 mt-6 text-white/90 text-sm">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Friday, February 27 at 4pm</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>San Francisco, CA</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Card -->
+  <div class="max-w-2xl mx-auto px-4 -mt-8 relative z-10">
+    <div class="bg-white rounded-xl shadow-lg p-10 sm:p-12">
+      <p class="text-yc-orange text-xs font-medium tracking-widest uppercase text-center mb-2">About</p>
+      <h2 class="font-serif text-2xl sm:text-3xl font-bold text-center mb-6">YC Co-Founder Matching Event in Dogpatch</h2>
+      <div class="text-gray-600 text-base leading-relaxed space-y-4">
+        <p>Join us for a Y Combinator Co-Founder Matching event, designed for promising early-stage founders and aspiring entrepreneurs passionate about addressing climate change! This gathering is an opportunity to connect with potential co-founders and collaborators in the Climate Tech startup space. It is best for people who are currently working on side projects or early stage ideas alone and would like to find a co-founder.</p>
+        <p class="font-medium text-gray-800">Event Highlights:</p>
+        <ul class="list-disc list-inside space-y-2 ml-2">
+          <li>Founder 'Speed Dating': Meet more potential co-founders through rapid one-on-one conversations.</li>
+          <li>Y Combinator Insights: YC Group Partners will share their tips for finding a great co-founder and why they're excited about teams building in this space.</li>
+        </ul>
+        <p>Doors open at 6pm with time for registration and mingling before YC announcements and 'speed dating'. Food and drinks will be served.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Form Section -->
+  <div class="mt-8 pb-24">
+    <div class="bg-yc-peach/50">
+      <div class="max-w-2xl mx-auto px-4 py-12">
+        <!-- Sign-in prompt (shown when not logged in) -->
+        <div id="signInPrompt" class="bg-white rounded-xl shadow-sm p-8 sm:p-10 text-center">
+          <h3 class="text-xl font-bold mb-2">Request a spot</h3>
+          <p class="text-gray-500 text-sm mb-6">Sign in to apply for this event.</p>
+          <button id="formSignInBtn" class="bg-yc-orange text-white font-medium px-8 py-3 rounded-full hover:bg-orange-600 transition-colors">
+            Sign in with Google
+          </button>
+        </div>
+
+        <div id="applicationForm" class="hidden bg-white rounded-xl shadow-sm p-8 sm:p-10">
+          <h3 class="text-xl font-bold mb-1">Request a spot</h3>
+          <p class="text-gray-500 text-sm mb-6">We'll reach out with details if we're able to confirm your attendance.</p>
+
+          <!-- Pre-filled name & email -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Your name <span class="text-red-500">*</span></label>
+              <div id="nameDisplay" class="flex items-center gap-2">
+                <span class="text-gray-900">Ryan Choi</span>
+                <button id="editNameBtn" class="text-blue-500 text-sm hover:underline">(edit)</button>
+              </div>
+              <input id="nameInput" type="text" value="Ryan Choi" class="hidden w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Your email <span class="text-red-500">*</span></label>
+              <div id="emailDisplay" class="flex items-center gap-2">
+                <span class="text-gray-900">ryan.choi@ycombinator.com</span>
+                <button id="editEmailBtn" class="text-blue-500 text-sm hover:underline">(edit)</button>
+              </div>
+              <input id="emailInput" type="email" value="ryan.choi@ycombinator.com" class="hidden w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange" />
+            </div>
+          </div>
+
+          <!-- Dynamic questions -->
+          <div class="space-y-5 mb-8">
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">What is your current Title and Role? <span class="text-red-500">*</span></label>
+              <textarea rows="2" class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange resize-y"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">What is your prior Title and Role? <span class="text-red-500">*</span></label>
+              <textarea rows="2" class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange resize-y"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Where did you go to school and what did you study? <span class="text-red-500">*</span></label>
+              <textarea rows="2" class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange resize-y"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Why is Climate Tech interesting to you? <span class="text-red-500">*</span></label>
+              <textarea rows="4" class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange resize-y"></textarea>
+            </div>
+          </div>
+
+          <div class="text-center">
+            <button id="submitApplicationBtn" class="bg-yc-orange text-white font-medium px-8 py-3 rounded-full hover:bg-orange-600 transition-colors">
+              Request a spot
+            </button>
+          </div>
+        </div>
+
+        <!-- Already-applied state (hidden by default) -->
+        <div id="applicationStatus" class="hidden bg-white rounded-xl shadow-sm p-8 sm:p-10 text-center">
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-800 font-medium text-sm mb-4">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Applied
+          </div>
+          <h3 class="text-xl font-bold mb-2">Your application has been submitted!</h3>
+          <p class="text-gray-500 text-sm">We'll reach out with details if we're able to confirm your attendance.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- SCREEN 2: ADMIN APPLICANT REVIEW                          -->
+<!-- ========================================================= -->
+<div id="screen-admin-applicants" class="screen hidden">
+  <div class="flex min-h-screen">
+
+    <!-- Admin Sidebar -->
+    <aside class="w-60 bg-gray-900 text-white flex flex-col flex-shrink-0">
+      <div class="px-5 py-5 flex items-center gap-3">
+        <div class="w-8 h-8 bg-yc-orange rounded-lg flex items-center justify-center">
+          <span class="text-white font-bold text-sm">Y</span>
+        </div>
+        <span class="font-semibold text-sm">YC Events Admin</span>
+      </div>
+      <nav class="flex-1 px-3 space-y-1">
+        <a href="#" class="admin-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="#" class="admin-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm bg-gray-800 text-white">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Events
+        </a>
+      </nav>
+      <div class="px-5 py-4 border-t border-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-yc-orange flex items-center justify-center text-white text-xs font-semibold">RC</div>
+          <div class="text-sm">
+            <div class="font-medium">Ryan Choi</div>
+            <div class="text-gray-500 text-xs">Admin</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 bg-gray-50">
+      <!-- Header -->
+      <div class="border-b border-gray-200 bg-white px-6 py-4">
+        <div class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+          <a href="#" class="hover:text-gray-700 transition-colors" data-nav="admin-events">Events</a>
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          <span class="text-gray-900">Climate Night 2026</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <h1 class="text-xl font-semibold">Applicant Review</h1>
+          <div class="flex items-center gap-4 text-sm">
+            <span class="text-blue-600 font-medium">156 applied</span>
+            <span class="text-green-600 font-medium">63 confirmed</span>
+            <span class="text-red-600 font-medium">59 rejected</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search + Filter Bar -->
+      <div class="px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div class="relative flex-1 max-w-md">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="applicantSearch" type="text" placeholder="Search applicants..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange" />
+        </div>
+        <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
+          <button data-filter="all" class="filter-tab px-3 py-1.5 rounded-md text-sm font-medium bg-white shadow-sm text-gray-900">All (278)</button>
+          <button data-filter="applied" class="filter-tab px-3 py-1.5 rounded-md text-sm font-medium text-gray-500 hover:text-gray-700">Applied (156)</button>
+          <button data-filter="confirmed" class="filter-tab px-3 py-1.5 rounded-md text-sm font-medium text-gray-500 hover:text-gray-700">Confirmed (63)</button>
+          <button data-filter="rejected" class="filter-tab px-3 py-1.5 rounded-md text-sm font-medium text-gray-500 hover:text-gray-700">Rejected (59)</button>
+        </div>
+      </div>
+
+      <!-- Bulk Action Bar (hidden by default) -->
+      <div id="bulkActionBar" class="hidden px-6 py-3 bg-blue-50 border-y border-blue-100 flex items-center gap-4">
+        <span id="bulkCount" class="text-sm font-medium text-blue-800">0 selected</span>
+        <button id="bulkConfirmBtn" class="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Confirm Selected
+        </button>
+        <button id="bulkRejectBtn" class="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Reject Selected
+        </button>
+        <button id="bulkDeselectBtn" class="px-3 py-1.5 text-gray-600 text-sm hover:text-gray-800 transition-colors">Deselect All</button>
+      </div>
+
+      <!-- Applicant Table -->
+      <div class="px-6 pb-24">
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mt-2">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-gray-200 text-left">
+                <th class="px-4 py-3 w-12"><input type="checkbox" id="selectAllCheckbox" class="big-checkbox rounded border-gray-300" /></th>
+                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Current Title</th>
+                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="applicantTableBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- SCREEN 3: ADMIN EVENT LIST                                -->
+<!-- ========================================================= -->
+<div id="screen-admin-events" class="screen hidden">
+  <div class="flex min-h-screen">
+    <!-- Admin Sidebar (same) -->
+    <aside class="w-60 bg-gray-900 text-white flex flex-col flex-shrink-0">
+      <div class="px-5 py-5 flex items-center gap-3">
+        <div class="w-8 h-8 bg-yc-orange rounded-lg flex items-center justify-center"><span class="text-white font-bold text-sm">Y</span></div>
+        <span class="font-semibold text-sm">YC Events Admin</span>
+      </div>
+      <nav class="flex-1 px-3 space-y-1">
+        <a href="#" class="admin-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="#" class="admin-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm bg-gray-800 text-white">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Events
+        </a>
+      </nav>
+      <div class="px-5 py-4 border-t border-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-yc-orange flex items-center justify-center text-white text-xs font-semibold">RC</div>
+          <div class="text-sm"><div class="font-medium">Ryan Choi</div><div class="text-gray-500 text-xs">Admin</div></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="flex-1 bg-gray-50">
+      <div class="border-b border-gray-200 bg-white px-6 py-4 flex items-center justify-between">
+        <h1 class="text-xl font-semibold">Events</h1>
+        <button class="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2" data-nav="admin-event-form">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Create Event
+        </button>
+      </div>
+
+      <div class="p-6 pb-24">
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-gray-200 text-left">
+                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Applicants</th>
+                <th class="px-4 py-3 w-20"></th>
+              </tr>
+            </thead>
+            <tbody id="eventTableBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- SCREEN 4: ADMIN CREATE/EDIT EVENT                         -->
+<!-- ========================================================= -->
+<div id="screen-admin-event-form" class="screen hidden">
+  <div class="flex min-h-screen">
+    <!-- Admin Sidebar -->
+    <aside class="w-60 bg-gray-900 text-white flex flex-col flex-shrink-0">
+      <div class="px-5 py-5 flex items-center gap-3">
+        <div class="w-8 h-8 bg-yc-orange rounded-lg flex items-center justify-center"><span class="text-white font-bold text-sm">Y</span></div>
+        <span class="font-semibold text-sm">YC Events Admin</span>
+      </div>
+      <nav class="flex-1 px-3 space-y-1">
+        <a href="#" class="admin-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="#" class="admin-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm bg-gray-800 text-white">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Events
+        </a>
+      </nav>
+      <div class="px-5 py-4 border-t border-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-yc-orange flex items-center justify-center text-white text-xs font-semibold">RC</div>
+          <div class="text-sm"><div class="font-medium">Ryan Choi</div><div class="text-gray-500 text-xs">Admin</div></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="flex-1 bg-gray-50">
+      <div class="border-b border-gray-200 bg-white px-6 py-4">
+        <div class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+          <a href="#" class="hover:text-gray-700 transition-colors" data-nav="admin-events">Events</a>
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          <span class="text-gray-900">Create Event</span>
+        </div>
+        <h1 class="text-xl font-semibold">Create Event</h1>
+      </div>
+
+      <div class="p-6 pb-24">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+          <!-- Left Column: Event Details -->
+          <div class="lg:col-span-3 space-y-6">
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 class="font-semibold mb-4">Event Details</h2>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                  <input id="eventTitleInput" type="text" placeholder="e.g. YC Co-Founder Matching Event" class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange" />
+                  <p id="eventSlugPreview" class="text-xs text-gray-400 mt-1">Slug: </p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea rows="6" placeholder="Describe the event..." class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange resize-y"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                    <input type="datetime-local" class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                    <input type="datetime-local" class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange" />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                  <input type="text" placeholder="e.g. San Francisco, CA" class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange bg-white">
+                    <option>Draft</option>
+                    <option>Published</option>
+                    <option>Closed</option>
+                    <option>Archived</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Questions -->
+          <div class="lg:col-span-2 space-y-4">
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="font-semibold">Questions</h2>
+                <button id="addQuestionBtn" class="text-sm text-yc-orange font-medium hover:text-orange-700 transition-colors flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Add Question
+                </button>
+              </div>
+              <div id="questionsContainer" class="space-y-3">
+                <!-- Questions populated by JS -->
+              </div>
+            </div>
+
+            <!-- Save / Cancel -->
+            <div class="flex gap-3">
+              <button class="flex-1 bg-gray-900 text-white text-sm font-medium py-2.5 rounded-lg hover:bg-gray-800 transition-colors">Save Event</button>
+              <button class="px-4 py-2.5 border border-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors" data-nav="admin-events">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  // ==================== DATA ====================
+  const applicants = [
+    { id: 1, name: 'Sofia Lopez', email: 'sofia1@yahoo.com', location: 'San Francisco', title: 'AI Researcher at Google', priorTitle: 'MBA Candidate', school: 'UCLA — Design', linkedin: 'https://linkedin.com/in/sofialopez', status: 'confirmed', answers: [{ q: 'What is your current Title and Role?', a: 'AI Researcher at Google — focusing on large language models for scientific discovery.' }, { q: 'Why is Climate Tech interesting to you?', a: 'I\'ve worked on high-scale backend systems and want to apply similar reliability thinking to energy grid software.' }], notes: '' },
+    { id: 2, name: 'Ben Patel', email: 'ben.patel@yahoo.com', location: 'Paris', title: 'Business Development', priorTitle: 'Sales Director', school: 'UCLA — Design', linkedin: 'https://linkedin.com/in/benpatel', status: 'applied', answers: [{ q: 'What is your current Title and Role?', a: 'Business Development Lead at a Series B climate startup in Paris.' }, { q: 'Why is Climate Tech interesting to you?', a: 'Considering building something but still ideating.' }], notes: '' },
+    { id: 3, name: 'Grace Wright', email: 'grace3@yahoo.com', location: 'LA', title: 'Marketing Manager @ Microsoft', priorTitle: 'AI Researcher at VC Fund', school: 'MIT — Engineering', linkedin: 'https://linkedin.com/in/gracewright', status: 'applied', answers: [{ q: 'What is your current Title and Role?', a: 'Marketing Manager at Microsoft, previously at a climate-focused VC fund.' }, { q: 'Why is Climate Tech interesting to you?', a: 'Considering building something but still ideating.' }], notes: '' },
+    { id: 4, name: 'Tariq Scott', email: 'tscott@protonmail.com', location: 'New York', title: 'MBA Candidate @ Self-employed', priorTitle: 'Startup Founder at Microsoft', school: 'Cambridge — Engineering', linkedin: 'https://linkedin.com/in/tariqscott', status: 'applied', answers: [{ q: 'What is your current Title and Role?', a: 'Currently between ventures, exploring carbon capture opportunities.' }, { q: 'Why is Climate Tech interesting to you?', a: 'I want to meet interesting people.' }], notes: 'Likely strong founder.' },
+    { id: 5, name: 'Priya Chen', email: 'priya.chen@gmail.com', location: 'Austin', title: 'Staff Engineer @ Stripe', priorTitle: 'Senior Engineer at Airbnb', school: 'Stanford — CS', linkedin: 'https://linkedin.com/in/priyachen', status: 'confirmed', answers: [{ q: 'What is your current Title and Role?', a: 'Staff Engineer at Stripe, payments infrastructure.' }, { q: 'Why is Climate Tech interesting to you?', a: 'I want to apply my infrastructure experience to solve energy distribution problems at scale.' }], notes: 'Very strong technical background.' },
+    { id: 6, name: 'Marcus Johnson', email: 'mjohnson@outlook.com', location: 'Chicago', title: 'Product Manager @ Salesforce', priorTitle: 'Consultant at McKinsey', school: 'Wharton — MBA', linkedin: 'https://linkedin.com/in/marcusjohnson', status: 'applied', answers: [{ q: 'What is your current Title and Role?', a: 'Product Manager leading sustainability features at Salesforce.' }, { q: 'Why is Climate Tech interesting to you?', a: 'I see a massive market opportunity in carbon accounting for enterprises.' }], notes: '' },
+    { id: 7, name: 'Anika Sharma', email: 'anika.s@gmail.com', location: 'Seattle', title: 'Research Scientist @ Amazon', priorTitle: 'PhD Researcher at MIT', school: 'MIT — PhD Environmental Eng.', linkedin: 'https://linkedin.com/in/anikasharma', status: 'rejected', answers: [{ q: 'What is your current Title and Role?', a: 'Research Scientist at Amazon working on supply chain optimization.' }, { q: 'Why is Climate Tech interesting to you?', a: 'My PhD focused on environmental modeling — want to commercialize my research.' }], notes: 'Academic background, less startup experience.' },
+    { id: 8, name: 'James Kim', email: 'jkim@protonmail.com', location: 'San Francisco', title: 'CTO @ Volta Energy', priorTitle: 'Engineering Lead at Tesla', school: 'Berkeley — EE', linkedin: 'https://linkedin.com/in/jameskim', status: 'confirmed', answers: [{ q: 'What is your current Title and Role?', a: 'CTO and co-founder at Volta Energy, building grid-scale battery tech.' }, { q: 'Why is Climate Tech interesting to you?', a: 'Already deep in the space — looking for strategic co-founder connections.' }], notes: 'Excellent candidate, already building.' },
+    { id: 9, name: 'Elena Rodriguez', email: 'elena.r@yahoo.com', location: 'Miami', title: 'VP Finance @ NextEra', priorTitle: 'Investment Banker at Goldman', school: 'Columbia — Finance', linkedin: 'https://linkedin.com/in/elenarodriguez', status: 'applied', answers: [{ q: 'What is your current Title and Role?', a: 'VP of Finance at NextEra Energy, largest wind/solar operator in the US.' }, { q: 'Why is Climate Tech interesting to you?', a: 'Want to transition from corporate to startup — deeply understand energy economics.' }], notes: '' },
+    { id: 10, name: 'Zoe Green', email: 'zgreen@gmail.com', location: '-', title: '-', priorTitle: '-', school: '-', linkedin: '', status: 'applied', answers: [{ q: 'What is your current Title and Role?', a: 'Freelance software developer exploring climate-related side projects.' }, { q: 'Why is Climate Tech interesting to you?', a: 'I believe technology can solve climate challenges and I want to be part of that solution.' }], notes: '' },
+    { id: 11, name: 'David Park', email: 'dpark@gmail.com', location: 'Boston', title: 'Founder @ GreenLoop', priorTitle: 'Product Lead at Google', school: 'Harvard — CS & Econ', linkedin: 'https://linkedin.com/in/davidpark', status: 'rejected', answers: [{ q: 'What is your current Title and Role?', a: 'Founder of GreenLoop, a circular economy marketplace.' }, { q: 'Why is Climate Tech interesting to you?', a: 'Already running a climate startup, looking for technical co-founder.' }], notes: 'Duplicate — already attending via another event.' },
+    { id: 12, name: 'Lisa Wang', email: 'lwang@gmail.com', location: 'Denver', title: 'Senior PM @ Rivian', priorTitle: 'PM at Apple', school: 'Carnegie Mellon — HCI', linkedin: 'https://linkedin.com/in/lisawang', status: 'applied', answers: [{ q: 'What is your current Title and Role?', a: 'Senior Product Manager at Rivian, working on fleet management software.' }, { q: 'Why is Climate Tech interesting to you?', a: 'EV infrastructure is just the beginning — there are huge opportunities in fleet electrification.' }], notes: '' },
+  ];
+
+  const events = [
+    { title: 'Climate Night 2026', slug: 'climate-night-2026', status: 'published', date: 'Mar 15, 2026', location: 'San Francisco, CA', applicants: 278 },
+    { title: 'AI Builders Salon 2026', slug: 'ai-builders-salon-2026', status: 'published', date: 'Mar 22, 2026', location: 'San Francisco, CA', applicants: 89 },
+    { title: 'Investor Breakfast SF 2026', slug: 'investor-breakfast-sf-2026', status: 'draft', date: 'Apr 5, 2026', location: 'San Francisco, CA', applicants: 95 },
+    { title: 'Founder Dinner NYC 2026', slug: 'founder-dinner-nyc-2026', status: 'published', date: 'Apr 12, 2026', location: 'New York, NY', applicants: 81 },
+    { title: 'Climate Demo Day 2026', slug: 'climate-demo-day-2026', status: 'draft', date: 'Apr 20, 2026', location: 'San Francisco, CA', applicants: 84 },
+    { title: 'Community Mixer 2026', slug: 'community-mixer-2026', status: 'closed', date: 'Feb 10, 2026', location: 'San Francisco, CA', applicants: 91 },
+    { title: 'Startup Hiring Hour 2026', slug: 'startup-hiring-hour-2026', status: 'published', date: 'Apr 28, 2026', location: 'Virtual', applicants: 98 },
+    { title: 'Hiring Webinar 2026', slug: 'hiring-webinar-2026', status: 'archived', date: 'Jan 18, 2026', location: 'Virtual', applicants: 88 },
+  ];
+
+  const defaultQuestions = [
+    { text: 'What is your current Title and Role?', required: true },
+    { text: 'What is your prior Title and Role?', required: true },
+    { text: 'Where did you go to school and what did you study?', required: true },
+    { text: 'Why is Climate Tech interesting to you?', required: true },
+  ];
+
+  // ==================== AUTH STATE ====================
+  const knownUsers = [
+    { email: 'ryan.choi@ycombinator.com', name: 'Ryan Choi', isAdmin: true },
+    { email: 'zgreen@gmail.com', name: 'Zoe Green', isAdmin: false },
+  ];
+
+  let currentUser = null;
+
+  function openLoginModal() {
+    document.getElementById('loginModal').classList.remove('hidden');
+    document.getElementById('loginStep1').classList.remove('hidden');
+    document.getElementById('loginStep2').classList.add('hidden');
+    document.getElementById('loginStep3').classList.add('hidden');
+  }
+
+  function closeLoginModal() {
+    document.getElementById('loginModal').classList.add('hidden');
+  }
+
+  function loginAs(email, name) {
+    const existing = knownUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (existing) {
+      currentUser = { ...existing };
+      showToast(`Welcome back, ${existing.name}!`, 'success');
+    } else {
+      currentUser = { email, name, isAdmin: false, isNew: true };
+      showToast(`Account created for ${name}. Welcome!`, 'success');
+    }
+    closeLoginModal();
+    updateAuthUI();
+  }
+
+  function logout() {
+    currentUser = null;
+    showToast('Signed out', 'success');
+    updateAuthUI();
+  }
+
+  function updateAuthUI() {
+    const navArea = document.getElementById('navAuthArea');
+    const signInPrompt = document.getElementById('signInPrompt');
+    const appForm = document.getElementById('applicationForm');
+    const appStatus = document.getElementById('applicationStatus');
+
+    if (currentUser) {
+      navArea.innerHTML = `
+        <span>Welcome, ${currentUser.name.split(' ')[0]}!</span>
+        <span class="text-white/60">&middot;</span>
+        <button id="navSignOutBtn" class="text-white/80 hover:text-white transition-colors">Sign out</button>
+      `;
+      document.getElementById('navSignOutBtn').addEventListener('click', logout);
+
+      signInPrompt.classList.add('hidden');
+      appStatus.classList.add('hidden');
+      appForm.classList.remove('hidden');
+
+      document.getElementById('nameDisplay').querySelector('span').textContent = currentUser.name;
+      document.getElementById('nameInput').value = currentUser.name;
+      document.getElementById('emailDisplay').querySelector('span').textContent = currentUser.email;
+      document.getElementById('emailInput').value = currentUser.email;
+    } else {
+      navArea.innerHTML = `<button id="navSignInBtn" class="text-white/90 hover:text-white transition-colors font-medium">Sign in</button>`;
+      document.getElementById('navSignInBtn').addEventListener('click', openLoginModal);
+
+      signInPrompt.classList.remove('hidden');
+      appForm.classList.add('hidden');
+      appStatus.classList.add('hidden');
+    }
+  }
+
+  // Login modal interactions
+  document.getElementById('loginModalClose').addEventListener('click', closeLoginModal);
+  document.getElementById('loginBackdrop').addEventListener('click', closeLoginModal);
+
+  document.getElementById('googleSignInBtn').addEventListener('click', () => {
+    document.getElementById('loginStep1').classList.add('hidden');
+    document.getElementById('loginStep2').classList.remove('hidden');
+  });
+
+  document.querySelectorAll('.google-account-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const email = btn.dataset.email;
+      const name = btn.dataset.name;
+      document.getElementById('loginStep2').classList.add('hidden');
+      document.getElementById('loginStep3').classList.remove('hidden');
+      setTimeout(() => loginAs(email, name), 800);
+    });
+  });
+
+  document.getElementById('formSignInBtn').addEventListener('click', openLoginModal);
+  document.getElementById('navSignInBtn').addEventListener('click', openLoginModal);
+
+  // ==================== SCREEN SWITCHING ====================
+  const screenTabs = document.querySelectorAll('.screen-tab');
+  const screens = document.querySelectorAll('.screen');
+
+  function showScreen(id) {
+    screens.forEach(s => s.classList.add('hidden'));
+    document.getElementById('screen-' + id).classList.remove('hidden');
+    screenTabs.forEach(t => {
+      if (t.dataset.screen === id) {
+        t.classList.add('bg-gray-900', 'text-white');
+        t.classList.remove('text-gray-600', 'hover:bg-gray-100');
+      } else {
+        t.classList.remove('bg-gray-900', 'text-white');
+        t.classList.add('text-gray-600', 'hover:bg-gray-100');
+      }
+    });
+  }
+
+  screenTabs.forEach(tab => {
+    tab.addEventListener('click', () => showScreen(tab.dataset.screen));
+  });
+
+  document.querySelectorAll('[data-nav]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      showScreen(el.dataset.nav);
+    });
+  });
+
+  // ==================== TOAST ====================
+  function showToast(message, type) {
+    const container = document.getElementById('toastContainer');
+    const colors = type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800';
+    const toast = document.createElement('div');
+    toast.className = `toast ${colors} border rounded-lg px-4 py-3 shadow-lg text-sm font-medium`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 5000);
+  }
+
+  // ==================== EVENT DETAIL: EDIT NAME/EMAIL ====================
+  const editNameBtn = document.getElementById('editNameBtn');
+  const editEmailBtn = document.getElementById('editEmailBtn');
+  const nameDisplay = document.getElementById('nameDisplay');
+  const emailDisplay = document.getElementById('emailDisplay');
+  const nameInput = document.getElementById('nameInput');
+  const emailInput = document.getElementById('emailInput');
+
+  editNameBtn.addEventListener('click', () => {
+    nameDisplay.classList.add('hidden');
+    nameInput.classList.remove('hidden');
+    nameInput.focus();
+  });
+  nameInput.addEventListener('blur', () => {
+    nameDisplay.querySelector('span').textContent = nameInput.value;
+    nameInput.classList.add('hidden');
+    nameDisplay.classList.remove('hidden');
+  });
+
+  editEmailBtn.addEventListener('click', () => {
+    emailDisplay.classList.add('hidden');
+    emailInput.classList.remove('hidden');
+    emailInput.focus();
+  });
+  emailInput.addEventListener('blur', () => {
+    emailDisplay.querySelector('span').textContent = emailInput.value;
+    emailInput.classList.add('hidden');
+    emailDisplay.classList.remove('hidden');
+  });
+
+  // ==================== EVENT DETAIL: SUBMIT ====================
+  document.getElementById('submitApplicationBtn').addEventListener('click', () => {
+    document.getElementById('applicationForm').classList.add('hidden');
+    document.getElementById('applicationStatus').classList.remove('hidden');
+    showToast('Your application has been submitted!', 'success');
+  });
+
+  // ==================== APPLICANT REVIEW ====================
+  const tableBody = document.getElementById('applicantTableBody');
+  let selectedIds = new Set();
+  let currentFilter = 'all';
+  let searchQuery = '';
+
+  function statusBadge(status) {
+    const colors = { applied: 'bg-blue-100 text-blue-800', confirmed: 'bg-green-100 text-green-800', rejected: 'bg-red-100 text-red-800' };
+    return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[status]}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+  }
+
+  function renderApplicants() {
+    let filtered = applicants.filter(a => {
+      if (currentFilter !== 'all' && a.status !== currentFilter) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const searchable = [a.name, a.email, a.location, a.title, a.priorTitle, a.school, a.linkedin, a.notes, ...a.answers.map(ans => ans.a)].join(' ').toLowerCase();
+        if (!searchable.includes(q)) return false;
+      }
+      return true;
+    });
+
+    tableBody.innerHTML = filtered.length === 0
+      ? `<tr><td colspan="7" class="px-4 py-12 text-center text-gray-400 text-sm">${searchQuery ? 'No applicants match your search.' : 'No applications yet for this event.'}</td></tr>`
+      : filtered.map(a => `
+      <tr class="applicant-row border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" data-id="${a.id}">
+        <td class="px-4 py-3" onclick="event.stopPropagation()"><input type="checkbox" class="applicant-cb big-checkbox rounded border-gray-300" data-id="${a.id}" ${selectedIds.has(a.id) ? 'checked' : ''} /></td>
+        <td class="px-4 py-3"><span class="font-medium text-sm">${a.name}</span></td>
+        <td class="px-4 py-3 text-sm text-gray-600">${a.email}</td>
+        <td class="px-4 py-3 text-sm text-gray-600">${a.location}</td>
+        <td class="px-4 py-3 text-sm text-gray-600">${a.title}</td>
+        <td class="px-4 py-3">${statusBadge(a.status)}</td>
+        <td class="px-4 py-3" onclick="event.stopPropagation()">
+          <div class="flex items-center gap-1">
+            ${a.status !== 'confirmed' ? `<button class="action-confirm p-1.5 rounded hover:bg-green-100 transition-colors" data-id="${a.id}" title="Confirm"><svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>` : ''}
+            ${a.status !== 'rejected' ? `<button class="action-reject p-1.5 rounded hover:bg-red-100 transition-colors" data-id="${a.id}" title="Reject"><svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : ''}
+          </div>
+        </td>
+      </tr>
+      <tr class="expanded-row hidden" data-expand-id="${a.id}">
+        <td colspan="7" class="px-4 py-4 bg-gray-50 border-b border-gray-200">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Profile</h4>
+              <dl class="space-y-2 text-sm">
+                <div class="flex gap-2"><dt class="text-gray-500 w-24 flex-shrink-0">LinkedIn</dt><dd>${a.linkedin ? `<a href="${a.linkedin}" class="text-blue-600 hover:underline">${a.linkedin}</a>` : '<span class="text-gray-400">-</span>'}</dd></div>
+                <div class="flex gap-2"><dt class="text-gray-500 w-24 flex-shrink-0">Prior Title</dt><dd class="text-gray-800">${a.priorTitle}</dd></div>
+                <div class="flex gap-2"><dt class="text-gray-500 w-24 flex-shrink-0">School</dt><dd class="text-gray-800">${a.school}</dd></div>
+              </dl>
+            </div>
+            <div>
+              <h4 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Application Answers</h4>
+              <div class="space-y-3">
+                ${a.answers.map(ans => `<div><p class="text-xs text-gray-500 mb-0.5">${ans.q}</p><p class="text-sm text-gray-800">${ans.a}</p></div>`).join('')}
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-200">
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Internal Notes</label>
+            <textarea class="notes-input w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange resize-y" rows="2" data-id="${a.id}" placeholder="Add internal notes...">${a.notes}</textarea>
+          </div>
+          <div class="mt-4 flex gap-3">
+            ${a.status !== 'confirmed' ? `<button class="action-confirm-lg px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2" data-id="${a.id}"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Confirm</button>` : ''}
+            ${a.status !== 'rejected' ? `<button class="action-reject-lg px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2" data-id="${a.id}"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Reject</button>` : ''}
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    attachApplicantListeners();
+  }
+
+  function attachApplicantListeners() {
+    document.querySelectorAll('.applicant-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const id = row.dataset.id;
+        const expandRow = document.querySelector(`[data-expand-id="${id}"]`);
+        expandRow.classList.toggle('hidden');
+      });
+    });
+
+    document.querySelectorAll('.applicant-cb').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const id = parseInt(cb.dataset.id);
+        if (cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+        updateBulkBar();
+      });
+    });
+
+    document.querySelectorAll('.action-confirm, .action-confirm-lg').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setStatus(parseInt(btn.dataset.id), 'confirmed');
+        showToast('Applicant confirmed', 'success');
+      });
+    });
+
+    document.querySelectorAll('.action-reject, .action-reject-lg').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setStatus(parseInt(btn.dataset.id), 'rejected');
+        showToast('Applicant rejected', 'success');
+      });
+    });
+
+    document.querySelectorAll('.notes-input').forEach(input => {
+      input.addEventListener('blur', () => {
+        const a = applicants.find(a => a.id === parseInt(input.dataset.id));
+        if (a) a.notes = input.value;
+      });
+    });
+  }
+
+  function setStatus(id, status) {
+    const a = applicants.find(a => a.id === id);
+    if (a) a.status = status;
+    renderApplicants();
+  }
+
+  function updateBulkBar() {
+    const bar = document.getElementById('bulkActionBar');
+    if (selectedIds.size > 0) {
+      bar.classList.remove('hidden');
+      document.getElementById('bulkCount').textContent = `${selectedIds.size} selected`;
+    } else {
+      bar.classList.add('hidden');
+    }
+  }
+
+  // Search
+  document.getElementById('applicantSearch').addEventListener('input', (e) => {
+    searchQuery = e.target.value;
+    renderApplicants();
+  });
+
+  // Filter tabs
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      currentFilter = tab.dataset.filter;
+      document.querySelectorAll('.filter-tab').forEach(t => {
+        t.classList.remove('bg-white', 'shadow-sm', 'text-gray-900');
+        t.classList.add('text-gray-500');
+      });
+      tab.classList.add('bg-white', 'shadow-sm', 'text-gray-900');
+      tab.classList.remove('text-gray-500');
+      renderApplicants();
+    });
+  });
+
+  // Select all
+  document.getElementById('selectAllCheckbox').addEventListener('change', (e) => {
+    if (e.target.checked) {
+      applicants.forEach(a => selectedIds.add(a.id));
+    } else {
+      selectedIds.clear();
+    }
+    updateBulkBar();
+    renderApplicants();
+  });
+
+  // Bulk actions
+  document.getElementById('bulkConfirmBtn').addEventListener('click', () => {
+    selectedIds.forEach(id => setStatus(id, 'confirmed'));
+    showToast(`${selectedIds.size} applicants confirmed`, 'success');
+    selectedIds.clear();
+    updateBulkBar();
+    renderApplicants();
+  });
+  document.getElementById('bulkRejectBtn').addEventListener('click', () => {
+    selectedIds.forEach(id => setStatus(id, 'rejected'));
+    showToast(`${selectedIds.size} applicants rejected`, 'success');
+    selectedIds.clear();
+    updateBulkBar();
+    renderApplicants();
+  });
+  document.getElementById('bulkDeselectBtn').addEventListener('click', () => {
+    selectedIds.clear();
+    updateBulkBar();
+    renderApplicants();
+  });
+
+  renderApplicants();
+
+  // ==================== EVENT LIST ====================
+  const eventTableBody = document.getElementById('eventTableBody');
+  const statusStyles = {
+    published: 'bg-green-100 text-green-800',
+    draft: 'bg-gray-100 text-gray-800',
+    closed: 'bg-yellow-100 text-yellow-800',
+    archived: 'bg-gray-100 text-gray-500',
+  };
+
+  eventTableBody.innerHTML = events.map(ev => `
+    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+      <td class="px-4 py-3"><span class="font-medium text-sm">${ev.title}</span></td>
+      <td class="px-4 py-3"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyles[ev.status]}">${ev.status.charAt(0).toUpperCase() + ev.status.slice(1)}</span></td>
+      <td class="px-4 py-3 text-sm text-gray-600">${ev.date}</td>
+      <td class="px-4 py-3 text-sm text-gray-600">${ev.location}</td>
+      <td class="px-4 py-3"><a href="#" class="text-sm text-blue-600 hover:underline applicant-link" data-slug="${ev.slug}">${ev.applicants} applicants</a></td>
+      <td class="px-4 py-3">
+        <button class="p-1.5 rounded hover:bg-gray-100 transition-colors" title="Edit">
+          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+
+  document.querySelectorAll('.applicant-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      showScreen('admin-applicants');
+    });
+  });
+
+  // ==================== EVENT FORM: SLUG GENERATION ====================
+  document.getElementById('eventTitleInput').addEventListener('input', (e) => {
+    const slug = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    document.getElementById('eventSlugPreview').textContent = 'Slug: ' + (slug || '...');
+  });
+
+  // ==================== EVENT FORM: QUESTION BUILDER ====================
+  let questions = [...defaultQuestions];
+
+  function renderQuestions() {
+    const container = document.getElementById('questionsContainer');
+    container.innerHTML = questions.map((q, i) => `
+      <div class="border border-gray-200 rounded-lg p-4 bg-gray-50" data-qi="${i}">
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2">
+            <button class="move-up p-1 rounded hover:bg-gray-200 transition-colors ${i === 0 ? 'opacity-30 pointer-events-none' : ''}" data-qi="${i}">
+              <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+            </button>
+            <button class="move-down p-1 rounded hover:bg-gray-200 transition-colors ${i === questions.length - 1 ? 'opacity-30 pointer-events-none' : ''}" data-qi="${i}">
+              <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <span class="text-xs text-gray-400 font-medium">Q${i + 1}</span>
+          </div>
+          <button class="delete-q p-1 rounded hover:bg-red-100 transition-colors" data-qi="${i}">
+            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          </button>
+        </div>
+        <textarea class="q-text w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yc-orange/50 focus:border-yc-orange resize-y bg-white" rows="2" data-qi="${i}">${q.text}</textarea>
+        <label class="flex items-center gap-2 mt-2 text-sm text-gray-600 cursor-pointer">
+          <input type="checkbox" class="q-required rounded border-gray-300" data-qi="${i}" ${q.required ? 'checked' : ''} />
+          Required
+        </label>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.q-text').forEach(ta => {
+      ta.addEventListener('blur', () => { questions[parseInt(ta.dataset.qi)].text = ta.value; });
+    });
+    container.querySelectorAll('.q-required').forEach(cb => {
+      cb.addEventListener('change', () => { questions[parseInt(cb.dataset.qi)].required = cb.checked; });
+    });
+    container.querySelectorAll('.delete-q').forEach(btn => {
+      btn.addEventListener('click', () => { questions.splice(parseInt(btn.dataset.qi), 1); renderQuestions(); });
+    });
+    container.querySelectorAll('.move-up').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.qi);
+        if (i > 0) { [questions[i], questions[i-1]] = [questions[i-1], questions[i]]; renderQuestions(); }
+      });
+    });
+    container.querySelectorAll('.move-down').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.qi);
+        if (i < questions.length - 1) { [questions[i], questions[i+1]] = [questions[i+1], questions[i]]; renderQuestions(); }
+      });
+    });
+  }
+
+  document.getElementById('addQuestionBtn').addEventListener('click', () => {
+    questions.push({ text: '', required: false });
+    renderQuestions();
+    const last = document.querySelector(`[data-qi="${questions.length - 1}"] .q-text`);
+    if (last) last.focus();
+  });
+
+  renderQuestions();
+
+  // ==================== KEYBOARD NAVIGATION (Applicant Table) ====================
+  document.addEventListener('keydown', (e) => {
+    if (document.getElementById('screen-admin-applicants').classList.contains('hidden')) return;
+    const rows = Array.from(document.querySelectorAll('.applicant-row'));
+    const focused = document.querySelector('.applicant-row.ring-2');
+    let idx = focused ? rows.indexOf(focused) : -1;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (focused) focused.classList.remove('ring-2', 'ring-yc-orange/50');
+      idx = Math.min(idx + 1, rows.length - 1);
+      rows[idx].classList.add('ring-2', 'ring-yc-orange/50');
+      rows[idx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (focused) focused.classList.remove('ring-2', 'ring-yc-orange/50');
+      idx = Math.max(idx - 1, 0);
+      rows[idx].classList.add('ring-2', 'ring-yc-orange/50');
+      rows[idx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter' && focused) {
+      focused.click();
+    } else if (e.key === 'Escape') {
+      document.querySelectorAll('.expanded-row').forEach(r => r.classList.add('hidden'));
+    }
+  });
+});
+</script>
+</body>
+</html>
