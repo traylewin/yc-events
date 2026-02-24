@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --color-yc-orange: #F26522;
+  --color-yc-peach: #FDF0E9;
+  --color-yc-navy: #1B1340;
+  --color-yc-purple: #2D1B69;
+}
