@@ -1,0 +1,57 @@
+name: Claude Security Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+    paths:
+      - 'app/api/**'
+      - 'lib/**'
+      - 'middleware*'
+      - 'server/**'
+      - '**/.env*'
+      - 'package.json'
+      - 'bun.lockb'
+
+jobs:
+  security-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Security Review
+        id: security-review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You are a security engineer reviewing PR ${{ github.repository }}/pull/${{ github.event.pull_request.number }}.
+
+            Analyze the diff for security vulnerabilities. Focus on:
+            - Secrets or credentials committed to code
+            - SQL/NoSQL injection (string interpolation in queries)
+            - XSS (unsanitized user input rendered in HTML/JSX)
+            - Auth bypasses (missing route guards, broken access control)
+            - Insecure JWT/session handling
+            - SSRF, open redirects, path traversal
+            - Dangerous functions (eval, dangerouslySetInnerHTML)
+            - Dependency vulnerabilities (run `bun audit` if lockfile changed)
+
+            For each finding:
+            - Specify file and line number
+            - Explain the vulnerability and its impact
+            - Provide a concrete code fix
+
+            Severity levels:
+            - 🔴 CRITICAL / 🟠 HIGH — post as request_changes review
+            - 🟡 MEDIUM / 🔵 INFO — post as comment review
+
+            If no security issues found, approve with a brief confirmation.
